@@ -13,6 +13,31 @@ HEIGHT    = WIDTH
 
 # --- Classes Definition
 
+class BaseObj:
+	_objects = []
+	_count   = 0
+	_currnt  = 0
+	def Append(self, obj):
+		self._objects.append(obj) 
+		self._count += 1
+	def get_count(self):
+		return len(self._objects)	
+	def __getitem__(self, index):
+		if index <= len(self._objects):
+			return self._objects[index]
+		else:
+			return None
+	def __iter__(self):
+		self._currnt = 0
+		return self
+	def __next__(self):
+		if self._currnt < self._count:
+			self._currnt += 1
+			return self.__getitem__(self._currnt - 1)
+		else:
+			raise StopIteration		
+	count   = property(get_count)		
+
 class Slider:
 	_name = ''
 	_desciption = ''
@@ -134,38 +159,18 @@ class RghtFrame(Frame):
 	def Draw(self, params):
 		return Frame.Draw(self)
 
-class Frames:
-	_frames = []
+class Frames(BaseObj):
 	_width  = 0
-	_count  = 0
 	def Append(self, frame):
-		self._frames.append(frame)
+		BaseObj.Append(self, frame)
 		self._width += frame.width
-		self._count += 1
 		return self._count
 	def Update(self):
-		for frame in self._frames:
+		for frame in self._objects:
 			frame.Update()
-	def get_count(self):
-		return len(self._frames)
 	def get_width(self):
 		return self._width
-	def __getitem__(self, index):
-		if index <= len(self._frames):
-			return self._frames[index]
-		else:
-			return None
-	def __iter__(self):
-		self._currnt = 0
-		return self
-	def __next__(self):
-		if self._currnt < self._count:
-			self._currnt += 1
-			return self.__getitem__(self._currnt - 1)
-		else:
-			raise StopIteration
 	width   = property(get_width)
-	count   = property(get_count)
 
 class Block:
 	_size      = 0
@@ -204,10 +209,8 @@ class Block:
 	posx = property(get_xposition, set_xposition)
 	size = property(get_size, set_size)
 
-class Scene:
-	_objects = []
+class Scene(BaseObj):
 	_frame  = None	
-	_count   = 0
 	_height = 0
 	_width  = 0
 	_minsize= 0
@@ -216,9 +219,6 @@ class Scene:
 		self._minsize = self._height
 		if self._minsize > self._width:
 			self._minsize = self._width
-	def Append(self, obj, dx):
-		self._objects.append(obj) 
-		self._count += 1
 	def Reset(self):
 		for obj in _self._objects:
 			obj.Reset()
