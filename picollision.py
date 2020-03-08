@@ -13,21 +13,45 @@ HEIGHT    = WIDTH
 
 # --- Classes Definition
 
+class Brick:
+	_size     = 0
+	_mass     = 0
+	_velocity = 0
+	def __init__(self, mass, velo):
+		self._mass = mass
+		self._velocity = velo
+	def get_mass(self):
+		return self._mass
+	def set_mass(self, val):
+		self._mass = val
+	def get_velo(self):
+		return self._velocity
+	def set_velo(self, val):
+		self._velocity = val
+	mass = property(get_mass, set_mass)
+	velo = property(get_velo, set_velo)
+
 class Slider:
 	_name = ''
 	_desciption = ''
 	_val = -1
 	_key = ''
-	def __init__(self, name, desc):
+	def __init__(self, name, desc, min=1, max=100):
 		self._name = name
 		self._desciption = desc
 		self._key = '-s_' + name + '-'
+		self._min = min
+		self._max = max
 	def get_name(self):
 		return self._name
 	def get_desc(self):
 		return self._desciption
 	def get_key(self):
 		return self._key
+	def get_min(self):
+		return self._min
+	def get_max(self):
+		return self._max
 	def get_val(self):
 		return self._val
 	def set_val(self, value):
@@ -40,7 +64,9 @@ class Slider:
 	desc = property(get_desc)
 	key  = property(get_key)
 	val  = property(get_val, set_val)
-	
+	min  = property(get_min)
+	max  = property(get_max)
+
 class Sliders:
 	_sliders = []
 	_layout  = []
@@ -51,11 +77,11 @@ class Sliders:
 		self._layout.append([
 			sg.Text(slider.desc + ':', size=(6,1)),
 			sg.Slider(
-				range=(1,100), 
-				disable_number_display=True, 
-				default_value=50, 
-				orientation='h', 
-				size=(width,20), 
+				range=(1,100),
+				disable_number_display=True,
+				default_value=50,
+				orientation='h',
+				size=(width,20),
 				key=slider.key
 			)
 		])
@@ -74,13 +100,13 @@ class Sliders:
 		return self._layout
 	def __iter__(self):
 		self._currnt = 0
-		return self		
+		return self
 	def __next__(self):
 		if self._currnt < self._count:
 			self._currnt += 1
 			return self.get_slider(self._currnt - 1)
 		else:
-			raise StopIteration		
+			raise StopIteration
 	count  = property(get_count)
 	all    = property(get_sliders)
 	layout = property(get_layout)
@@ -111,14 +137,14 @@ class Image:
 	width   = property(GetWidth)
 	height  = property(GetHeight)
 	wndelem = property(get_window_element, set_window_element)
-	
-class LeftImage(Image):
+
+class LeftFrame(Image):
 	def __init__(self, width, height):
 		Image.__init__(self, width, height, '-leftimage-')
 	def Draw(self, params):
 		return Image.Draw(self)
 
-class RghtImage(Image):
+class RghtFrame(Image):
 	def __init__(self, width, height):
 		Image.__init__(self, width, height, '-rghtimage-')
 	def Draw(self, params):
@@ -157,17 +183,20 @@ class Frames:
 			raise StopIteration
 	width   = property(get_width)
 	count   = property(get_count)
-		
+
 # --- Instances Implementation
 
 frames = Frames()
-frames.Append(LeftImage(WIDTH * 3 // 2, HEIGHT))
-frames.Append(RghtImage(WIDTH, HEIGHT))
+frames.Append(LeftFrame(WIDTH * 3 // 2, HEIGHT))
+frames.Append(RghtFrame(WIDTH, HEIGHT))
 
 sliders = Sliders()
 sliders.Append(Slider('Dt',   'Delta T'),  frames.width // 12)
 sliders.Append(Slider('Vel',  'Velocity'), frames.width // 12)
 sliders.Append(Slider('Mass', 'Mass'),     frames.width // 12)
+
+leftbrick  = Brick(1, 0)
+rightbrick = Brick(MASSRATIO, 10)
 
 # --- Main Window
 
@@ -176,10 +205,10 @@ MainLayout.append([sg.Image(filename='', key=frame.key) for frame in frames])
 MainLayout.append([sg.Text('', size=(40,1), text_color='Yellow', font='bold', key='-values-')])
 MainLayout.append([
 	sg.Frame(
-		'Options:', 
+		'Options:',
 		sliders.layout,
-		font='Any 11', 
-		title_color='blue', 
+		font='Any 11',
+		title_color='blue',
 		pad=(5,10),
 		element_justification = 'left',
 		title_location = sg.TITLE_LOCATION_TOP_LEFT,
@@ -206,6 +235,6 @@ while True:
 		if slider.set_val(values[slider.key]):
 			Redraw_img += 1
 	if Redraw_img:
-		Redraw_img = 0 
+		Redraw_img = 0
 		if _DEBUG: print('+++ Redraw', flush=True)
 		frames.Update()
