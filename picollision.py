@@ -273,7 +273,7 @@ MainLayout.append([
 MainWindow = sg.Window('Pi number from collision calculation', MainLayout, no_titlebar=False, location=(0,0))
 for frame in frames:
 	frame.wndelem = MainWindow
-Redraw_img  = 0
+Redraw  = 0
 
 while True:
 	event, values = MainWindow.Read(timeout=10)
@@ -281,8 +281,8 @@ while True:
 		break
 	for slider in sliders:
 		if slider.set_val(values[slider.key]):
-			Redraw_img += 1
-	if Redraw_img:
-		Redraw_img = 0
+			Redraw += 1
+	if Redraw:
+		Redraw = 0
 		if _DEBUG: print('+++ Redraw', flush=True)
 		frames.Update()
