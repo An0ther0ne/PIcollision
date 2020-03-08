@@ -13,24 +13,6 @@ HEIGHT    = WIDTH
 
 # --- Classes Definition
 
-class Brick:
-	_size     = 0
-	_mass     = 0
-	_velocity = 0
-	def __init__(self, mass, velo):
-		self._mass = mass
-		self._velocity = velo
-	def get_mass(self):
-		return self._mass
-	def set_mass(self, val):
-		self._mass = val
-	def get_velo(self):
-		return self._velocity
-	def set_velo(self, val):
-		self._velocity = val
-	mass = property(get_mass, set_mass)
-	velo = property(get_velo, set_velo)
-
 class Slider:
 	_name = ''
 	_desciption = ''
@@ -71,7 +53,6 @@ class Sliders:
 	_sliders = []
 	_layout  = []
 	_count   = 0
-	_currnt  = 0
 	def Append(self, slider, width):
 		self._sliders.append(slider)
 		self._layout.append([
@@ -111,7 +92,7 @@ class Sliders:
 	all    = property(get_sliders)
 	layout = property(get_layout)
 
-class Image:
+class Frame:
 	_window_element = None
 	def __init__(self, width, height, key):
 		self._width  = width
@@ -129,6 +110,8 @@ class Image:
 		return self._width
 	def GetHeight(self):
 		return self._height
+	def get_image(self):
+		return self._image
 	def get_window_element(self):
 		return self._window_element
 	def set_window_element(self, window):
@@ -137,24 +120,24 @@ class Image:
 	width   = property(GetWidth)
 	height  = property(GetHeight)
 	wndelem = property(get_window_element, set_window_element)
+	image   = property(get_image)
 
-class LeftFrame(Image):
+class LeftFrame(Frame):
 	def __init__(self, width, height):
-		Image.__init__(self, width, height, '-leftimage-')
+		Frame.__init__(self, width, height, '-leftimage-')
 	def Draw(self, params):
-		return Image.Draw(self)
+		return Frame.Draw(self)
 
-class RghtFrame(Image):
+class RghtFrame(Frame):
 	def __init__(self, width, height):
-		Image.__init__(self, width, height, '-rghtimage-')
+		Frame.__init__(self, width, height, '-rghtimage-')
 	def Draw(self, params):
-		return Image.Draw(self)
+		return Frame.Draw(self)
 
 class Frames:
 	_frames = []
 	_width  = 0
 	_count  = 0
-	_currnt = 0
 	def Append(self, frame):
 		self._frames.append(frame)
 		self._width += frame.width
@@ -167,9 +150,9 @@ class Frames:
 		return len(self._frames)
 	def get_width(self):
 		return self._width
-	def get_frame(self, num):
-		if num <= len(self._frames):
-			return self._frames[num]
+	def __getitem__(self, index):
+		if index <= len(self._frames):
+			return self._frames[index]
 		else:
 			return None
 	def __iter__(self):
@@ -178,11 +161,73 @@ class Frames:
 	def __next__(self):
 		if self._currnt < self._count:
 			self._currnt += 1
-			return self.get_frame(self._currnt - 1)
+			return self.__getitem__(self._currnt - 1)
 		else:
 			raise StopIteration
 	width   = property(get_width)
 	count   = property(get_count)
+
+class Block:
+	_size      = 0
+	_mass      = 0
+	_velocity  = 0
+	_velinit   = 0
+	_xposition = 0
+	_xstart    = 0
+	def __init__(self, mass, posx, velo):
+		self._mass = mass
+		self._xposition = posx
+		self._xstart = posx
+		self._velocity = velo
+		self._velinit  = velo
+	def Reset(self):
+		self._velocity  = self._velinit
+		self._xposition = self._xstart
+	def get_mass(self):
+		return self._mass
+	def set_mass(self, val):
+		self._mass = val
+	def get_velo(self):
+		return self._velocity
+	def set_velo(self, val):
+		self._velocity = val
+	def get_xposition(self):
+		return self._xposition
+	def set_xposition(self, val):
+		self._xposition = val
+	def get_size(self):
+		return self._size
+	def set_size(self, val):
+		self._size = val
+	mass = property(get_mass, set_mass)
+	velo = property(get_velo, set_velo)
+	posx = property(get_xposition, set_xposition)
+	size = property(get_size, set_size)
+
+class Scene:
+	_objects = []
+	_frame  = None	
+	_count   = 0
+	_height = 0
+	_width  = 0
+	_minsize= 0
+	def __init__(self, frame):
+		self._height, self._width = frame.image.shape[:2]
+		self._minsize = self._height
+		if self._minsize > self._width:
+			self._minsize = self._width
+	def Append(self, obj, dx):
+		self._objects.append(obj) 
+		self._count += 1
+	def Reset(self):
+		for obj in _self._objects:
+			obj.Reset()
+
+class LScene(Scene):
+	pass
+	
+class RScene(Scene):
+	pass	
 
 # --- Instances Implementation
 
@@ -195,8 +240,11 @@ sliders.Append(Slider('Dt',   'Delta T'),  frames.width // 12)
 sliders.Append(Slider('Vel',  'Velocity'), frames.width // 12)
 sliders.Append(Slider('Mass', 'Mass'),     frames.width // 12)
 
-leftbrick  = Brick(1, 0)
-rightbrick = Brick(MASSRATIO, 10)
+# leftbrick  = Block(1, 0)
+# rightbrick = Block(MASSRATIO, 10)
+
+lscene = LScene(frames[0])
+rscene = RScene(frames[1])
 
 # --- Main Window
 
