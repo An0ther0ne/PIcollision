@@ -222,8 +222,8 @@ class Scene(BaseObj):
 	def Reset(self):
 		for block in self._objects:
 			block.Reset()
-	def Append(self, block):
-		return BaseObj.Append(self, block)
+	# def Append(self, block):
+		# return BaseObj.Append(self, block)			
 	def Draw(self):
 		for obj in self._objects:
 			obj.Go()
