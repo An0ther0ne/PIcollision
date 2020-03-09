@@ -97,6 +97,11 @@ class Sliders(BaseObj):
 		return self._objects
 	def get_layout(self):
 		return self._layout
+	def get_caption(self):
+		caption = ''
+		for slider in self._objects:
+			caption += slider.desc + '=' + str(int(slider.val)) + '    '
+		return caption
 	layout = property(get_layout)
 
 class Frame:
@@ -231,7 +236,7 @@ rscene = RScene(frames[1])
 
 MainLayout = []
 MainLayout.append([sg.Image(filename='', key=frame.key) for frame in frames])
-MainLayout.append([sg.Text('', size=(40,1), text_color='Yellow', font='bold', key='-values-')])
+MainLayout.append([sg.Text('', size=(40,1), text_color='Green', font='bold', key='-values-')])
 MainLayout.append([
 	sg.Frame(
 		'Options:',
@@ -254,6 +259,7 @@ MainLayout.append([
 MainWindow = sg.Window('Pi number from collision calculation', MainLayout, no_titlebar=False, location=(0,0))
 for frame in frames:
 	frame.wndelem = MainWindow
+caption_elem = MainWindow['-values-']
 Redraw  = 0
 
 while True:
@@ -267,3 +273,4 @@ while True:
 		Redraw = 0
 		if _DEBUG: print('+++ Redraw', flush=True)
 		frames.Update()
+		caption_elem.update(sliders.get_caption())
