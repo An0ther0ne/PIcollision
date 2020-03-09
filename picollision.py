@@ -14,12 +14,11 @@ HEIGHT    = WIDTH
 # --- Classes Definition
 
 class BaseObj:
-	_objects = []
-	_count   = 0
-	_currnt  = 0
+	def __init__(self):
+		self._objects = []
 	def Append(self, obj):
 		self._objects.append(obj) 
-		self._count += 1
+		return len(self._objects)
 	def get_count(self):
 		return len(self._objects)	
 	def __getitem__(self, index):
@@ -28,21 +27,18 @@ class BaseObj:
 		else:
 			return None
 	def __iter__(self):
-		self._currnt = 0
+		self._curcnt = 0
 		return self
 	def __next__(self):
-		if self._currnt < self._count:
-			self._currnt += 1
-			return self.__getitem__(self._currnt - 1)
+		if self._curcnt < len(self._objects):
+			self._curcnt += 1
+			return self.__getitem__(self._curcnt - 1)
 		else:
 			raise StopIteration		
-	count   = property(get_count)		
+	count   = property(get_count)
 
 class Slider:
-	_name = ''
-	_desciption = ''
 	_val = -1
-	_key = ''
 	def __init__(self, name, desc, min=1, max=100):
 		self._name = name
 		self._desciption = desc
@@ -74,47 +70,29 @@ class Slider:
 	min  = property(get_min)
 	max  = property(get_max)
 
-class Sliders:
-	_sliders = []
-	_layout  = []
-	_count   = 0
+class Sliders(BaseObj):
+	def __init__(self):
+		BaseObj.__init__(self)
+		self._layout  = []
 	def Append(self, slider, width):
-		self._sliders.append(slider)
 		self._layout.append([
-			sg.Text(slider.desc + ':', size=(6,1)),
+			sg.Text(
+				slider.desc + ':', 
+				size=(6, 1)),
 			sg.Slider(
-				range=(1,100),
+				range=(1, 100),
 				disable_number_display=True,
 				default_value=50,
 				orientation='h',
-				size=(width,20),
+				size=(width, 20),
 				key=slider.key
 			)
 		])
-		self._count += 1
-		return self._count
-	def get_count(self):
-		return self._count
-	def get_slider(self, num):
-		if num <= len(self._sliders):
-			return self._sliders[num]
-		else:
-			return None
+		return BaseObj.Append(self, slider)
 	def get_sliders(self):
-		return self._sliders
+		return self._objects
 	def get_layout(self):
 		return self._layout
-	def __iter__(self):
-		self._currnt = 0
-		return self
-	def __next__(self):
-		if self._currnt < self._count:
-			self._currnt += 1
-			return self.get_slider(self._currnt - 1)
-		else:
-			raise StopIteration
-	count  = property(get_count)
-	all    = property(get_sliders)
 	layout = property(get_layout)
 
 class Frame:
@@ -162,9 +140,8 @@ class RghtFrame(Frame):
 class Frames(BaseObj):
 	_width  = 0
 	def Append(self, frame):
-		BaseObj.Append(self, frame)
 		self._width += frame.width
-		return self._count
+		return BaseObj.Append(self, frame)
 	def Update(self):
 		for frame in self._objects:
 			frame.Update()
