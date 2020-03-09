@@ -18,10 +18,10 @@ class BaseObj:
 	def __init__(self):
 		self._objects = []
 	def Append(self, obj):
-		self._objects.append(obj) 
+		self._objects.append(obj)
 		return len(self._objects)
 	def get_count(self):
-		return len(self._objects)	
+		return len(self._objects)
 	def __getitem__(self, index):
 		if index <= len(self._objects):
 			return self._objects[index]
@@ -35,7 +35,7 @@ class BaseObj:
 			self._curcnt += 1
 			return self.__getitem__(self._curcnt - 1)
 		else:
-			raise StopIteration		
+			raise StopIteration
 	count   = property(get_count)
 
 class Slider:
@@ -89,7 +89,7 @@ class Sliders(BaseObj):
 	def Append(self, slider, width):
 		self._layout.append([
 			sg.Text(
-				slider.desc + ':', 
+				slider.desc + ':',
 				size=(6, 1)),
 			sg.Slider(
 				range=(slider.min, slider.max),
@@ -101,6 +101,11 @@ class Sliders(BaseObj):
 			)
 		])
 		return BaseObj.Append(self, slider)
+	def get_slider_value(self, key):
+		for slider in self._objects:
+			if slider.name == key:
+				return slider.meaning
+		return 0
 	def get_sliders(self):
 		return self._objects
 	def get_layout(self):
@@ -192,7 +197,12 @@ class Block:
 	def Reset(self):
 		self._velocity  = self._velinit
 		self._xposition = self._xstart
-	def Go(self):
+	def Go(self, dt):
+		self._xposition += self._velocity * dt
+		if self._xposition < 0:
+			self._xposition = 0
+			self._velocity = -self._velocity
+	def Draw(self, frame):
 		pass
 	def get_mass(self):
 		return self._mass
@@ -216,19 +226,19 @@ class Block:
 	size = property(get_size, set_size)
 
 class Scene(BaseObj):
-	def __init__(self, frameset):
+	def __init__(self, frameset, sliders):
 		BaseObj.__init__(self)
 		self._frameset = frameset
+		self._sliders = sliders
 	def Reset(self):
 		for block in self._objects:
 			block.Reset()
-	# def Append(self, block):
-		# return BaseObj.Append(self, block)			
 	def Draw(self):
 		for obj in self._objects:
-			obj.Go()
+			obj.Go(self._sliders.get_slider_value('Dt'))
+			obj.Draw(self._frameset[0])
 		self._frameset.Update(self._objects)
-		
+
 # --- Instances Implementation
 
 frames = Frames()
@@ -240,9 +250,9 @@ sliders.Append(Slider('Dt',   'Delta T', multiply=0.001, max=200),  frames.width
 sliders.Append(Slider('Vel',  'Velocity'), frames.width // 12)
 sliders.Append(Slider('Mass', 'Mass', min=0, max=10, default=0, multiply=0),     frames.width // 12)
 
-scene = Scene(frames)
+scene = Scene(frames, sliders)
 scene.Append(Block(1, 1, 0))
-scene.Append(Block(MASSRATIO, MAX_X-1, 10))
+scene.Append(Block(MASSRATIO, MAX_X-1, -MAX_X))
 
 # --- Main Window
 
