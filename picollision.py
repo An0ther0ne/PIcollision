@@ -132,8 +132,8 @@ class Frame:
 	def Draw(self):
 		frame = self._image.copy()
 		return frame
-	def Update(self):
-		self._window_element.update(data=cv2.imencode('.png', self.Draw())[1].tobytes())
+	def Update(self, img):
+		self._window_element.update(data=cv2.imencode('.png', img)[1].tobytes())
 	def GetKey(self):
 		return self._key
 	def GetWidth(self):
@@ -168,9 +168,10 @@ class Frames(BaseObj):
 		if self._minwidth > frame.width:
 			self._minwidth = frame.width
 		return BaseObj.Append(self, frame)
-	def Update(self):
+	def Update(self, blocks):
 		for frame in self._objects:
-			frame.Update()
+			img = frame.image
+			frame.Update(img)
 	def get_width(self):
 		return self._width
 	width   = property(get_width)
@@ -224,10 +225,10 @@ class Scene(BaseObj):
 	def Append(self, block):
 		return BaseObj.Append(self, block)
 	def Draw(self):
-		self._frameset.Update()
 		for obj in self._objects:
 			obj.Go()
-
+		self._frameset.Update(self._objects)
+		
 # --- Instances Implementation
 
 frames = Frames()
