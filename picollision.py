@@ -39,12 +39,13 @@ class BaseObj:
 
 class Slider:
 	_val = -1
-	def __init__(self, name, desc, min=1, max=100):
+	def __init__(self, name, desc, min=1, max=100, default=50):
 		self._name = name
 		self._desciption = desc
 		self._key = '-s_' + name + '-'
 		self._min = min
 		self._max = max
+		self._def = default
 	def get_name(self):
 		return self._name
 	def get_desc(self):
@@ -57,6 +58,8 @@ class Slider:
 		return self._max
 	def get_val(self):
 		return self._val
+	def get_def(self):
+		return self._def
 	def set_val(self, value):
 		if self._val != value:
 			self._val = value
@@ -69,6 +72,7 @@ class Slider:
 	val  = property(get_val, set_val)
 	min  = property(get_min)
 	max  = property(get_max)
+	default = property(get_def)
 
 class Sliders(BaseObj):
 	def __init__(self):
@@ -80,9 +84,9 @@ class Sliders(BaseObj):
 				slider.desc + ':', 
 				size=(6, 1)),
 			sg.Slider(
-				range=(1, 100),
+				range=(slider.min, slider.max),
 				disable_number_display=True,
-				default_value=50,
+				default_value=slider.default,
 				orientation='h',
 				size=(width, 20),
 				key=slider.key
