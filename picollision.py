@@ -133,7 +133,7 @@ class Frame:
 		frame = self._image.copy()
 		return frame
 	def Update(self):
-		self._window_element.update(data=cv2.imencode('.png', self.Draw(self))[1].tobytes())
+		self._window_element.update(data=cv2.imencode('.png', self.Draw())[1].tobytes())
 	def GetKey(self):
 		return self._key
 	def GetWidth(self):
@@ -155,14 +155,10 @@ class Frame:
 class LeftFrame(Frame):
 	def __init__(self, width, height):
 		Frame.__init__(self, width, height, '-leftimage-')
-	def Draw(self, params):
-		return Frame.Draw(self)
 
 class RghtFrame(Frame):
 	def __init__(self, width, height):
 		Frame.__init__(self, width, height, '-rghtimage-')
-	def Draw(self, params):
-		return Frame.Draw(self)
 
 class Frames(BaseObj):
 	_width    = 0
@@ -218,18 +214,19 @@ class Block:
 	posx = property(get_xposition, set_xposition)
 	size = property(get_size, set_size)
 
-class Scene(Frames):
+class Scene(BaseObj):
+	def __init__(self, frameset):
+		BaseObj.__init__(self)
+		self._frameset = frameset
 	def Reset(self):
-		for obj in self._objects:
-			if hasattr(obj, 'Reset'):
-				obj.Reset()
+		for block in self._objects:
+			block.Reset()
+	def Append(self, block):
+		return BaseObj.Append(self, block)
 	def Draw(self):
+		self._frameset.Update()
 		for obj in self._objects:
-			classname = obj.__class__.__name__
-			if 	 classname == 'LeftFrame' or classname == 'RghtFrame':
-				pass
-			elif classname == 'Block':
-				obj.Go()
+			obj.Go()
 
 # --- Instances Implementation
 
@@ -242,12 +239,9 @@ sliders.Append(Slider('Dt',   'Delta T', multiply=0.001, max=200),  frames.width
 sliders.Append(Slider('Vel',  'Velocity'), frames.width // 12)
 sliders.Append(Slider('Mass', 'Mass', min=0, max=10, default=0, multiply=0),     frames.width // 12)
 
-scene = frames
-scene.__class__ = Scene		# This also change frames class
-scene.Draw()
-
-# leftbrick  = Block(1, 0)
-# rightbrick = Block(MASSRATIO, 10)
+scene = Scene(frames)
+scene.Append(Block(1, 1, 0))
+scene.Append(Block(MASSRATIO, MAX_X-1, 10))
 
 # --- Main Window
 
@@ -283,10 +277,10 @@ while True:
 	event, values = MainWindow.Read(timeout=10)
 	if event == 'Exit' or event == None:
 		break
+	scene.Draw()
 	for slider in sliders:
 		if slider.set_val(values[slider.key]):
 			Redraw += 1
 	if Redraw:
 		Redraw = 0
-		frames.Update()
 		caption_elem.update(sliders.get_caption())
