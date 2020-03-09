@@ -219,7 +219,8 @@ class Block:
 class Scene(Frames):
 	def Reset(self):
 		for obj in _self._objects:
-			obj.Reset()
+			if hasattr(obj, 'Reset'):
+				obj.Reset()
 
 # --- Instances Implementation
 
