@@ -10,6 +10,7 @@ _DEBUG    = True
 MASSRATIO = 1000000
 WIDTH     = 400
 HEIGHT    = WIDTH
+MAX_X	  = 10
 
 # --- Classes Definition
 
@@ -119,9 +120,13 @@ class Sliders(BaseObj):
 
 class Frame:
 	_window_element = None
+	_minsize = 0
 	def __init__(self, width, height, key):
-		self._width  = width
-		self._height = height
+		self._width   = width
+		self._height  = height
+		self._minsize = width
+		if self._minsize > height:
+			self._minsize = height
 		self._key = key
 		self._image = np.zeros((height, width, 3), dtype="uint8")
 	def Draw(self):
@@ -160,9 +165,12 @@ class RghtFrame(Frame):
 		return Frame.Draw(self)
 
 class Frames(BaseObj):
-	_width  = 0
+	_width    = 0
+	_minwidth = 0
 	def Append(self, frame):
 		self._width += frame.width
+		if self._minwidth > frame.width:
+			self._minwidth = frame.width
 		return BaseObj.Append(self, frame)
 	def Update(self):
 		for frame in self._objects:
@@ -208,25 +216,10 @@ class Block:
 	posx = property(get_xposition, set_xposition)
 	size = property(get_size, set_size)
 
-class Scene(BaseObj):
-	_frame  = None	
-	_height = 0
-	_width  = 0
-	_minsize= 0
-	def __init__(self, frame):
-		self._height, self._width = frame.image.shape[:2]
-		self._minsize = self._height
-		if self._minsize > self._width:
-			self._minsize = self._width
+class Scene(Frames):
 	def Reset(self):
 		for obj in _self._objects:
 			obj.Reset()
-
-class LScene(Scene):
-	pass
-	
-class RScene(Scene):
-	pass	
 
 # --- Instances Implementation
 
@@ -241,9 +234,6 @@ sliders.Append(Slider('Mass', 'Mass', min=0, max=10, default=0, multiply=0),    
 
 # leftbrick  = Block(1, 0)
 # rightbrick = Block(MASSRATIO, 10)
-
-lscene = LScene(frames[0])
-rscene = RScene(frames[1])
 
 # --- Main Window
 
