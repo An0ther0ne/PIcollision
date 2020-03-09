@@ -195,6 +195,8 @@ class Block:
 	def Reset(self):
 		self._velocity  = self._velinit
 		self._xposition = self._xstart
+	def Go(self):
+		pass
 	def get_mass(self):
 		return self._mass
 	def set_mass(self, val):
@@ -218,9 +220,16 @@ class Block:
 
 class Scene(Frames):
 	def Reset(self):
-		for obj in _self._objects:
+		for obj in self._objects:
 			if hasattr(obj, 'Reset'):
 				obj.Reset()
+	def Draw(self):
+		for obj in self._objects:
+			classname = obj.__class__.__name__
+			if 	 classname == 'LeftFrame' or classname == 'RghtFrame':
+				pass
+			elif classname == 'Block':
+				obj.Go()
 
 # --- Instances Implementation
 
@@ -232,6 +241,10 @@ sliders = Sliders()
 sliders.Append(Slider('Dt',   'Delta T', multiply=0.001, max=200),  frames.width // 12)
 sliders.Append(Slider('Vel',  'Velocity'), frames.width // 12)
 sliders.Append(Slider('Mass', 'Mass', min=0, max=10, default=0, multiply=0),     frames.width // 12)
+
+scene = frames
+scene.__class__ = Scene		# This also change frames class
+scene.Draw()
 
 # leftbrick  = Block(1, 0)
 # rightbrick = Block(MASSRATIO, 10)
