@@ -20,8 +20,6 @@ class BaseObj:
 	def Append(self, obj):
 		self._objects.append(obj)
 		return len(self._objects)
-	def get_count(self):
-		return len(self._objects)
 	def __getitem__(self, index):
 		if index <= len(self._objects):
 			return self._objects[index]
@@ -36,7 +34,7 @@ class BaseObj:
 			return self.__getitem__(self._curcnt - 1)
 		else:
 			raise StopIteration
-	count   = property(get_count)
+	count   = property(lambda self : len(self._objects))
 
 class Slider:
 	_val = -1
@@ -48,39 +46,20 @@ class Slider:
 		self._max = max
 		self._def = default
 		self._mul = multiply
-	def get_name(self):
-		return self._name
-	def get_desc(self):
-		return self._desciption
-	def get_key(self):
-		return self._key
-	def get_min(self):
-		return self._min
-	def get_max(self):
-		return self._max
-	def get_val(self):
-		return self._val
-	def get_mean(self):
-		if self._mul > 0:
-			return self._val * self._mul
-		else:
-			return 10 ** self._val
-	def get_def(self):
-		return self._def
 	def set_val(self, value):
 		if self._val != value:
 			self._val = value
 			return True
 		else:
 			return False
-	name = property(get_name)
-	desc = property(get_desc)
-	key  = property(get_key)
-	val  = property(get_val, set_val)
-	meaning = property(get_mean)
-	min  = property(get_min)
-	max  = property(get_max)
-	default = property(get_def)
+	name = property(lambda self : self._name)
+	desc = property(lambda self : self._desciption)
+	key  = property(lambda self : self._key)
+	val  = property(lambda self : self._val, set_val)
+	meaning = property(lambda self : self._val * self._mul if self._mul > 0 else 10 ** self._val)
+	min  = property(lambda self : self._min)
+	max  = property(lambda self : self._max)
+	default = property(lambda self : self._def)
 
 class Sliders(BaseObj):
 	def __init__(self):
@@ -108,8 +87,6 @@ class Sliders(BaseObj):
 		return 0
 	def get_sliders(self):
 		return self._objects
-	def get_layout(self):
-		return self._layout
 	def get_caption(self):
 		caption = ''
 		for slider in self._objects:
@@ -121,7 +98,7 @@ class Sliders(BaseObj):
 			else:
 				caption += slider.desc + '={:<10.3f} '.format(value)
 		return caption
-	layout = property(get_layout)
+	layout = property(lambda self : self._layout)
 
 class Frame:
 	_window_element = None
@@ -139,23 +116,14 @@ class Frame:
 		return frame
 	def Update(self, img):
 		self._window_element.update(data=cv2.imencode('.png', img)[1].tobytes())
-	def GetKey(self):
-		return self._key
-	def GetWidth(self):
-		return self._width
-	def GetHeight(self):
-		return self._height
-	def get_image(self):
-		return self._image
-	def get_window_element(self):
-		return self._window_element
 	def set_window_element(self, window):
 		self._window_element = window[self._key]
-	key     = property(GetKey)
-	width   = property(GetWidth)
-	height  = property(GetHeight)
-	wndelem = property(get_window_element, set_window_element)
-	image   = property(get_image)
+	wndelem = property(lambda self : self._window_element, set_window_element)
+	key     = property(lambda self : self._key)
+	width   = property(lambda self : self._width)
+	height  = property(lambda self : self._height)
+	image   = property(lambda self : self._image)
+	minsize = property(lambda self : self._minsize)
 
 class LeftFrame(Frame):
 	def __init__(self, width, height):
@@ -177,9 +145,7 @@ class Frames(BaseObj):
 		for frame in self._objects:
 			img = frame.image
 			frame.Update(img)
-	def get_width(self):
-		return self._width
-	width   = property(get_width)
+	width   = property(lambda self : self._width)
 
 class Block:
 	_size      = 0
@@ -204,26 +170,18 @@ class Block:
 			self._velocity = -self._velocity
 	def Draw(self, frame):
 		pass
-	def get_mass(self):
-		return self._mass
 	def set_mass(self, val):
 		self._mass = val
-	def get_velo(self):
-		return self._velocity
 	def set_velo(self, val):
 		self._velocity = val
-	def get_xposition(self):
-		return self._xposition
 	def set_xposition(self, val):
 		self._xposition = val
-	def get_size(self):
-		return self._size
 	def set_size(self, val):
 		self._size = val
-	mass = property(get_mass, set_mass)
-	velo = property(get_velo, set_velo)
-	posx = property(get_xposition, set_xposition)
-	size = property(get_size, set_size)
+	mass = property(lambda self : self._mass, set_mass)
+	velo = property(lambda self : self._velocity, set_velo)
+	posx = property(lambda self : self._xposition, set_xposition)
+	size = property(lambda self : self._size, set_size)
 
 class Scene(BaseObj):
 	def __init__(self, frameset, sliders):
