@@ -39,13 +39,14 @@ class BaseObj:
 
 class Slider:
 	_val = -1
-	def __init__(self, name, desc, min=1, max=100, default=50):
+	def __init__(self, name, desc, min=1, max=100, default=50, multiply=1):
 		self._name = name
 		self._desciption = desc
 		self._key = '-s_' + name + '-'
 		self._min = min
 		self._max = max
 		self._def = default
+		self._mul = multiply
 	def get_name(self):
 		return self._name
 	def get_desc(self):
@@ -58,6 +59,11 @@ class Slider:
 		return self._max
 	def get_val(self):
 		return self._val
+	def get_mean(self):
+		if self._mul > 0:
+			return self._val * self._mul
+		else:
+			return 10 ** self._val
 	def get_def(self):
 		return self._def
 	def set_val(self, value):
@@ -70,6 +76,7 @@ class Slider:
 	desc = property(get_desc)
 	key  = property(get_key)
 	val  = property(get_val, set_val)
+	meaning = property(get_mean)
 	min  = property(get_min)
 	max  = property(get_max)
 	default = property(get_def)
@@ -100,7 +107,13 @@ class Sliders(BaseObj):
 	def get_caption(self):
 		caption = ''
 		for slider in self._objects:
-			caption += slider.desc + '=' + str(int(slider.val)) + '    '
+			value = slider.meaning
+			if value > 10:
+				caption += slider.desc + '={:<10.0f} '.format(value)
+			elif value > 0.999:
+				caption += slider.desc + '={:<10.1f} '.format(value)
+			else:
+				caption += slider.desc + '={:<10.3f} '.format(value)
 		return caption
 	layout = property(get_layout)
 
@@ -222,9 +235,9 @@ frames.Append(LeftFrame(WIDTH * 3 // 2, HEIGHT))
 frames.Append(RghtFrame(WIDTH, HEIGHT))
 
 sliders = Sliders()
-sliders.Append(Slider('Dt',   'Delta T'),  frames.width // 12)
+sliders.Append(Slider('Dt',   'Delta T', multiply=0.001, max=200),  frames.width // 12)
 sliders.Append(Slider('Vel',  'Velocity'), frames.width // 12)
-sliders.Append(Slider('Mass', 'Mass'),     frames.width // 12)
+sliders.Append(Slider('Mass', 'Mass', min=0, max=10, default=0, multiply=0),     frames.width // 12)
 
 # leftbrick  = Block(1, 0)
 # rightbrick = Block(MASSRATIO, 10)
@@ -236,7 +249,7 @@ rscene = RScene(frames[1])
 
 MainLayout = []
 MainLayout.append([sg.Image(filename='', key=frame.key) for frame in frames])
-MainLayout.append([sg.Text('', size=(40,1), text_color='Green', font='bold', key='-values-')])
+MainLayout.append([sg.Text('', size=(80,1), text_color='Green', font='bold', key='-values-')])
 MainLayout.append([
 	sg.Frame(
 		'Options:',
@@ -271,6 +284,5 @@ while True:
 			Redraw += 1
 	if Redraw:
 		Redraw = 0
-		if _DEBUG: print('+++ Redraw', flush=True)
 		frames.Update()
 		caption_elem.update(sliders.get_caption())
