@@ -59,6 +59,7 @@ class Slider:
 	meaning = property(lambda self : self._val * self._mul if self._mul > 0 else 10 ** self._val)
 	min  = property(lambda self : self._min)
 	max  = property(lambda self : self._max)
+	maxval  = property(lambda self : self._max * self._mul if self._mul > 0 else 10 ** self._max)
 	default = property(lambda self : self._def)
 
 class Sliders(BaseObj):
@@ -84,6 +85,11 @@ class Sliders(BaseObj):
 		for slider in self._objects:
 			if slider.name == key:
 				return slider.meaning
+		return 0
+	def get_slider_maxvalue(self, key):
+		for slider in self._objects:
+			if slider.name == key:
+				return slider.maxval
 		return 0
 	def get_sliders(self):
 		return self._objects
@@ -168,8 +174,17 @@ class Block:
 		if self._xposition < 0:
 			self._xposition = 0
 			self._velocity = -self._velocity
-	def Draw(self, frame):
-		pass
+	def Draw(self, frame, maxmass):
+		xpos = int(self.posx)
+		ypos = frame.height
+		if self.mass <= 10:
+			self.size = 10
+			color = (0,255,0)
+		else:
+			self.size = int(10 + (frame.minsize / 5) * pow((self.mass / maxmass), 1/3))
+			color = (0,0,255)
+		print("+++ size ={} selfmass={} minsize={} maxmass={}".format(self.size, self.mass, frame.minsize, maxmass), flush=True)
+		return cv2.rectangle(frame.image, (xpos, ypos), (xpos + self.size, ypos - self.size), color, 1)
 	def set_mass(self, val):
 		self._mass = val
 	def set_velo(self, val):
@@ -192,9 +207,14 @@ class Scene(BaseObj):
 		for block in self._objects:
 			block.Reset()
 	def Draw(self):
+		mass = self._sliders.get_slider_value('Mass')
+		maxmass = self._sliders.get_slider_maxvalue('Mass')
+		deltat  = self._sliders.get_slider_value('Dt')
+		if self._objects[1].mass != mass:
+			self._objects[1].mass = mass
 		for obj in self._objects:
-			obj.Go(self._sliders.get_slider_value('Dt'))
-			obj.Draw(self._frameset[0])
+			obj.Go(deltat)
+			obj.Draw(self._frameset[0], maxmass)
 		self._frameset.Update(self._objects)
 
 # --- Instances Implementation
